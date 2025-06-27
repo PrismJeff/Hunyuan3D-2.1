@@ -27,9 +27,13 @@ from .camera_utils import (
     get_orthographic_projection_matrix,
     get_perspective_projection_matrix,
 )
+import nvdiffrast.torch as dr
+
+from . import mesh_utils
+from .mesh_utils import load_mesh
 
 try:
-    from .mesh_utils import load_mesh, save_mesh
+    from .mesh_utils import save_mesh
 except:
     print("Bpy IO CAN NOT BE Imported!!!")
 

@@ -14,7 +14,7 @@
 
 import os
 import cv2
-import bpy
+# import bpy
 import math
 import numpy as np
 from io import StringIO
@@ -248,37 +248,33 @@ def _apply_shading(shade_type: str, auto_smooth_angle: float):
 def _apply_auto_smooth(auto_smooth_angle: float):
     """Apply auto smooth based on Blender version."""
     angle_rad = math.radians(auto_smooth_angle)
-
-    if bpy.app.version < (4, 1, 0):
-        bpy.ops.object.shade_smooth(use_auto_smooth=True, auto_smooth_angle=angle_rad)
-    elif bpy.app.version < (4, 2, 0):
-        bpy.ops.object.shade_smooth_by_angle(angle=angle_rad)
-    else:
-        bpy.ops.object.shade_auto_smooth(angle=angle_rad)
+    for obj in bpy.context.selected_objects:
+        if obj.type == "MESH":
+            obj.data.use_auto_smooth = True
+            obj.data.auto_smooth_angle = angle_rad
 
 
-def convert_obj_to_glb(
-    obj_path: str,
-    glb_path: str,
-    shade_type: str = "SMOOTH",
-    auto_smooth_angle: float = 60,
-    merge_vertices: bool = False,
-) -> bool:
-    """Convert OBJ file to GLB format using Blender."""
-    try:
-        _setup_blender_scene()
-        _clear_scene_objects()
+# def convert_obj_to_glb(
+#     obj_path: str,
+#     glb_path: str,
+#     shade_type: str = "SMOOTH",
+#     auto_smooth_angle: float = 60,
+#     merge_vertices: bool = False,
+# ) -> bool:
+#     """Convert OBJ file to GLB format using Blender."""
+#     try:
+#         _setup_blender_scene()
+#         _clear_scene_objects()
 
-        # Import OBJ file
-        bpy.ops.wm.obj_import(filepath=obj_path)
-        _select_mesh_objects()
+#         bpy.ops.import_scene.obj(filepath=obj_path)
+#         _select_mesh_objects()
 
-        # Process meshes
-        _merge_vertices_if_needed(merge_vertices)
-        _apply_shading(shade_type, auto_smooth_angle)
+#         _merge_vertices_if_needed(merge_vertices)
+#         _apply_shading(shade_type, auto_smooth_angle)
 
-        # Export to GLB
-        bpy.ops.export_scene.gltf(filepath=glb_path, use_active_scene=True)
-        return True
-    except Exception:
-        return False
+#         bpy.ops.export_scene.gltf(filepath=glb_path, export_format="GLB")
+#         return True
+
+#     except Exception as e:
+#         print(f"Error converting OBJ to GLB: {e}")
+#         return False
