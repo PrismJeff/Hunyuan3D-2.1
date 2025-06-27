@@ -25,7 +25,7 @@ from utils.multiview_utils import multiviewDiffusionNet
 from utils.pipeline_utils import ViewProcessor
 from utils.image_super_utils import imageSuperNet
 from utils.uvwrap_utils import mesh_uv_wrap
-from DifferentiableRenderer.mesh_utils import convert_obj_to_glb
+from .convert_utils import create_glb_with_pbr_materials
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -186,7 +186,12 @@ class Hunyuan3DPaintPipeline:
         self.render.save_mesh(output_mesh_path, downsample=True)
 
         if save_glb:
-            convert_obj_to_glb(output_mesh_path, output_mesh_path.replace(".obj", ".glb"))
+            textures = {
+                'albedo': output_mesh_path.replace('.obj', '.jpg'),
+                'metallic': output_mesh_path.replace('.obj', '_metallic.jpg'),
+                'roughness': output_mesh_path.replace('.obj', '_roughness.jpg')
+            }
             output_glb_path = output_mesh_path.replace(".obj", ".glb")
+            create_glb_with_pbr_materials(output_mesh_path, textures, output_glb_path)
 
         return output_mesh_path
