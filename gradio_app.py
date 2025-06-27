@@ -339,6 +339,8 @@ def generation_all(
     randomize_seed: bool = False,
 ):
     start_time_0 = time.time()
+    print("DEBUG: Starting generation_all...")
+    sys.stdout.flush()
     mesh, image, save_folder, stats, seed = _gen_shape(
         caption,
         image,
@@ -354,8 +356,12 @@ def generation_all(
         num_chunks=num_chunks,
         randomize_seed=randomize_seed,
     )
+    print("DEBUG: _gen_shape finished.")
+    sys.stdout.flush()
     path = export_mesh(mesh, save_folder, textured=False)
     
+    print("DEBUG: Initial export_mesh finished.")
+    sys.stdout.flush()
 
     print(path)
     print('='*40)
@@ -367,10 +373,18 @@ def generation_all(
     # stats['time']['postprocessing'] = time.time() - tmp_time
 
     tmp_time = time.time()
+    print("DEBUG: Starting face_reduce_worker...")
+    sys.stdout.flush()
     mesh = face_reduce_worker(mesh)
+    print("DEBUG: face_reduce_worker finished.")
+    sys.stdout.flush()
 
     # path = export_mesh(mesh, save_folder, textured=False, type='glb')
+    print("DEBUG: Starting second export_mesh (obj)...")
+    sys.stdout.flush()
     path = export_mesh(mesh, save_folder, textured=False, type='obj') # 这样操作也会 core dump
+    print("DEBUG: Second export_mesh (obj) finished.")
+    sys.stdout.flush()
 
     logger.info("---Face Reduction takes %s seconds ---" % (time.time() - tmp_time))
     stats['time']['face reduction'] = time.time() - tmp_time
@@ -378,7 +392,11 @@ def generation_all(
     tmp_time = time.time()
 
     text_path = os.path.join(save_folder, f'textured_mesh.obj')
+    print("DEBUG: Starting tex_pipeline...")
+    sys.stdout.flush()
     path_textured = tex_pipeline(mesh_path=path, image_path=image, output_mesh_path=text_path, save_glb=False)
+    print("DEBUG: tex_pipeline finished.")
+    sys.stdout.flush()
         
     logger.info("---Texture Generation takes %s seconds ---" % (time.time() - tmp_time))
     stats['time']['texture generation'] = time.time() - tmp_time
@@ -386,7 +404,11 @@ def generation_all(
     tmp_time = time.time()
     # Convert textured OBJ to GLB using obj2gltf with PBR support
     glb_path_textured = os.path.join(save_folder, 'textured_mesh.glb')
+    print("DEBUG: Starting quick_convert_with_obj2gltf...")
+    sys.stdout.flush()
     conversion_success = quick_convert_with_obj2gltf(path_textured, glb_path_textured)
+    print("DEBUG: quick_convert_with_obj2gltf finished.")
+    sys.stdout.flush()
 
     logger.info("---Convert textured OBJ to GLB takes %s seconds ---" % (time.time() - tmp_time))
     stats['time']['convert textured OBJ to GLB'] = time.time() - tmp_time
@@ -737,7 +759,7 @@ if __name__ == '__main__':
     parser.add_argument("--model_path", type=str, default='tencent/Hunyuan3D-2.1')
     parser.add_argument("--subfolder", type=str, default='hunyuan3d-dit-v2-1')
     parser.add_argument("--texgen_model_path", type=str, default='tencent/Hunyuan3D-2.1')
-    parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--port', type=int, default=7860)
     parser.add_argument('--host', type=str, default='0.0.0.0')
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--mc_algo', type=str, default='mc')
@@ -830,9 +852,9 @@ if __name__ == '__main__':
     from hy3dshape import FaceReducer, FloaterRemover, DegenerateFaceRemover, MeshSimplifier, \
         Hunyuan3DDiTFlowMatchingPipeline
     from hy3dshape.pipelines import export_to_trimesh
-    from hy3dshape.rembg import BackgroundRemover
+    from hy3dshape.birefnet_rembg import BiRefNetRemover
 
-    rmbg_worker = BackgroundRemover()
+    rmbg_worker = BiRefNetRemover()
     i23d_worker = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
         args.model_path,
         subfolder=args.subfolder,
