@@ -66,3 +66,17 @@ pythreejs
 torchdiffeq
 deepspeed
 
+# New additions from the code block
+jaxtyping
+wandb
+trimesh[easy]
+Pillow
+imageio-ffmpeg
+distinctipy
+lpips
+ray
+astunparse
+fpie
+requests
+runpod
+
